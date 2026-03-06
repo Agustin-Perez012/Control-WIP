@@ -123,7 +123,7 @@
 
     <script>
         // ==========================================
-        // ⚙️ TUS LINKS YA CONFIGURADOS
+        // ⚙️ TUS LINKS DE GOOGLE SHEETS
         // ==========================================
         const LINK_SECCIONADORA = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ-tCcMntP0sT_WZrZ8eMy8YP5d6hWFl-4Y5zGpWwboFQIvqAikDwh8BbvisqfawWq23jfl5zm0RxUT/pub?gid=0&single=true&output=csv";
         const LINK_LINEA        = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ-tCcMntP0sT_WZrZ8eMy8YP5d6hWFl-4Y5zGpWwboFQIvqAikDwh8BbvisqfawWq23jfl5zm0RxUT/pub?gid=108164202&single=true&output=csv";
@@ -144,12 +144,28 @@
             return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(numero);
         };
 
+        // ====== NUEVO: RECUPERAR PRECIOS GUARDADOS ======
+        // Esto se ejecuta apenas abres la página
+        window.onload = function() {
+            if (localStorage.getItem('precio15')) document.getElementById('costo15').value = localStorage.getItem('precio15');
+            if (localStorage.getItem('precio12')) document.getElementById('costo12').value = localStorage.getItem('precio12');
+            if (localStorage.getItem('precio3')) document.getElementById('costo3').value = localStorage.getItem('precio3');
+        };
+        // ==================================================
+
         async function procesarDatos() {
             const inputArchivo = document.getElementById('archivoMaestro');
             
+            // Leemos los precios de las cajitas
             precio15 = parseFloat(document.getElementById('costo15').value) || 0;
             precio12 = parseFloat(document.getElementById('costo12').value) || 0;
             precio3 = parseFloat(document.getElementById('costo3').value) || 0;
+
+            // ====== NUEVO: GUARDAR PRECIOS EN LA MEMORIA ======
+            localStorage.setItem('precio15', precio15);
+            localStorage.setItem('precio12', precio12);
+            localStorage.setItem('precio3', precio3);
+            // ==================================================
 
             if (!inputArchivo.files[0]) {
                 alert("Por favor, selecciona primero el archivo Maestro de Despiece CSV.");
@@ -239,7 +255,6 @@
                             
                             const wipPiezas = cantidadMuebles * infoMueble.piezasTotales;
                             
-                            // Calculamos m2 consumidos por esta serie entera
                             const totalM2_15 = cantidadMuebles * infoMueble.m2_15;
                             const totalM2_12 = cantidadMuebles * infoMueble.m2_12;
                             const totalM2_3 = cantidadMuebles * infoMueble.m2_3;
@@ -256,7 +271,6 @@
                             if (nombreSector === "LÍNEA") { totalLinea += wipPiezas; costoLinea += costoSerieTotal; }
                             if (nombreSector === "EMBALAJE") { totalEmbalaje += wipPiezas; costoEmbalaje += costoSerieTotal; }
 
-                            // Armamos el texto del desglose de m2 solo si llevan más de 0
                             let desgloseM2 = "";
                             if (totalM2_15 > 0) desgloseM2 += `15mm: <strong>${totalM2_15.toFixed(2)}</strong> m²<br>`;
                             if (totalM2_12 > 0) desgloseM2 += `12mm: <strong>${totalM2_12.toFixed(2)}</strong> m²<br>`;
@@ -282,8 +296,6 @@
             }
         }
     </script>
+       
 </body>
-
 </html>
-
-
