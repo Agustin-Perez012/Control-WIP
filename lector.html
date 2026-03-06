@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lector de Despiece CSV</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 40px; background-color: #f4f7f6; color: #333; }
+        .caja-lectura { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto; text-align: center; }
+        input[type="file"] { margin: 20px 0; font-size: 16px; }
+        button { background-color: #2c3e50; color: white; border: none; padding: 10px 20px; font-size: 16px; border-radius: 5px; cursor: pointer; }
+        button:hover { background-color: #1a252f; }
+        .resultado { margin-top: 25px; font-size: 18px; padding: 15px; background-color: #e8f8f5; border-left: 5px solid #16a085; text-align: left; display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="caja-lectura">
+        <h2>Cargar Despiece Maestro</h2>
+        <p>Sube el archivo CSV exportado desde Excel.</p>
+        
+        <input type="file" id="archivoCSV" accept=".csv">
+        <br>
+        <button onclick="leerYCalcular()">Calcular WIP del Lote</button>
+
+        <div class="resultado" id="panel-resultado"></div>
+    </div>
+
+    <script>
+        function leerYCalcular() {
+            const input = document.getElementById('archivoCSV');
+            const file = input.files[0]; // Capturamos el archivo subido
+            
+            if (!file) {
+                alert("Por favor, selecciona primero tu archivo CSV.");
+                return;
+            }
+
+            const reader = new FileReader(); // Esta es la herramienta nativa del navegador
+            
+            // Le decimos qué hacer cuando termine de leer el archivo
+            reader.onload = function(evento) {
+                const textoCompleto = evento.target.result;
+                
+                // Dividimos todo el texto en líneas (cada fila de Excel es una línea)
+                const lineas = textoCompleto.split('\n');
+                
+                let totalPiezasMueble = 0;
+                const skuBuscado = "3542"; // Simulamos que queremos armar el Placard Bahia
+                const cantidadLote = 300;  // Simulamos que la programación pide 300 unidades
+                
+                // Recorremos las líneas de Excel una por una (empezamos en 1 para saltar los títulos)
+                for (let i = 1; i < lineas.length; i++) {
+                    
+                    // IMPORTANTE: En Argentina, el Excel a veces guarda los CSV separados por punto y coma (;) en vez de coma (,).
+                    // Si tu Excel usa punto y coma, cambia la coma de abajo por un ';'
+                    const columnas = lineas[i].split(';'); 
+                    
+                    // Verificamos que la fila tenga datos y que la columna 0 (el SKU) sea la que buscamos
+                    if (columnas.length >= 4 && columnas[0].trim() === skuBuscado) {
+                        
+                        // La cantidad de piezas está en la columna 3 (recuerda que en programación se cuenta 0, 1, 2, 3)
+                        const cantidadPieza = parseInt(columnas[3].trim()); 
+                        
+                        // Si es un número válido, lo sumamos al total
+                        if (!isNaN(cantidadPieza)) {
+                            totalPiezasMueble += cantidadPieza;
+                        }
+                    }
+                }
+                
+                // Hacemos el cálculo final del WIP
+                const wipTeoricoTotal = totalPiezasMueble * cantidadLote;
+                
+                // Mostramos el resultado en pantalla
+                const panel = document.getElementById('panel-resultado');
+                panel.style.display = "block";
+                panel.innerHTML = `
+                    <p><strong>SKU Analizado:</strong> ${skuBuscado}</p>
+                    <p><strong>Piezas por unidad:</strong> ${totalPiezasMueble} piezas</p>
+                    <hr>
+                    <p>Para un lote de <strong>${cantidadLote} unidades</strong>, el WIP a ingresar a la fábrica será de <strong>${wipTeoricoTotal} piezas</strong> en circulación.</p>
+                `;
+            };
+            
+            // Finalmente, le damos la orden de leer el archivo como texto
+            reader.readAsText(file);
+        }
+    </script>
+</body>
+</html>
