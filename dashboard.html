@@ -56,7 +56,6 @@
     </header>
 
     <div class="container">
-        
         <div class="config-panel">
             <h3>⚙️ Sincronización y Costos por Espesor</h3>
 
@@ -144,11 +143,17 @@
             return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(numero);
         };
 
-        // RECUPERAR PRECIOS GUARDADOS AL ABRIR LA PÁGINA
+        // ====== GUARDADO INSTANTÁNEO (Auto-Save) ======
         window.onload = function() {
+            // 1. Al abrir la página, recuperamos lo guardado
             if (localStorage.getItem('precio15')) document.getElementById('costo15').value = localStorage.getItem('precio15');
             if (localStorage.getItem('precio12')) document.getElementById('costo12').value = localStorage.getItem('precio12');
             if (localStorage.getItem('precio3')) document.getElementById('costo3').value = localStorage.getItem('precio3');
+
+            // 2. Le decimos al sistema que guarde automáticamente cada vez que tipeás algo
+            document.getElementById('costo15').addEventListener('input', function() { localStorage.setItem('precio15', this.value); });
+            document.getElementById('costo12').addEventListener('input', function() { localStorage.setItem('precio12', this.value); });
+            document.getElementById('costo3').addEventListener('input', function() { localStorage.setItem('precio3', this.value); });
         };
 
         async function procesarDatos() {
@@ -160,11 +165,6 @@
             precio12 = parseFloat(document.getElementById('costo12').value) || 0;
             precio3 = parseFloat(document.getElementById('costo3').value) || 0;
 
-            // GUARDAR PRECIOS EN LA MEMORIA
-            localStorage.setItem('precio15', precio15);
-            localStorage.setItem('precio12', precio12);
-            localStorage.setItem('precio3', precio3);
-
             totalWipGeneral = 0; costoWipGeneral = 0;
             totalSeccionadora = 0; costoSeccionadora = 0;
             totalLinea = 0; costoLinea = 0;
@@ -172,7 +172,6 @@
             filasHTML = "";
 
             try {
-                // NUEVO: LEER EL ARCHIVO CSV DIRECTAMENTE DESDE GITHUB
                 const respuestaCSV = await fetch('Base de datos plana.csv');
                 
                 if (!respuestaCSV.ok) {
@@ -235,7 +234,6 @@
                 console.error(error);
                 alert("Hubo un error al leer los archivos. Revisa la consola para más detalles.");
             } finally {
-                // Volvemos el botón a la normalidad
                 btnSincronizar.innerText = "🔄 Sincronizar y Calcular";
                 btnSincronizar.style.backgroundColor = "#27ae60";
             }
